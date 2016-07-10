@@ -19,8 +19,8 @@ public:
     char lastMove[4];
     char promotionPiece;
     bool whiteToMove;
-    bool whiteCanQcastle, whiteCanKcastle;
-    bool blackCanQcastle, blackCanKcastle;
+    bool whiteQcastlingRights, whiteKcastlingRights;
+    bool blackQcastlingRights, blackKcastlingRights;
     // int whiteBishops, blackBishops, whitePieces, blackPieces;
     //char positionState;   // possibly use a separate class
 
@@ -35,16 +35,18 @@ public:
     Position(char[8][8], short, short, short, short, char, bool, bool, bool, bool, bool);
     void makeMove(int, int, int, int, char);
     void findLegalMoves();
-    // other searchy and evaluatey functions
+    // other searchy and evaluaty functions
     // char* bestmove();
     void staticEval();
     void dynamicEval();
     void sortNextPositions(); 
+    void twoPlyEval();
     void threePlyEval();
     void fourPlyEval();
+    void positionEval();
 
 
-private: // move finding functions
+private: // move making functions
 
     char integerToChar(short);
 
@@ -55,9 +57,14 @@ private: // move finding functions
     void queenMoves(int, int);
     void kingMoves(int, int);
     // Legal move helper functions
+    bool whiteLegalToKcastle();
+    bool whiteLegalToQcastle();
+    bool blackLegalToKcastle();
+    bool blackLegalToQcastle();
     bool squareInBounds(int, int);
     bool emptySquare(int, int);
     bool enemyPiece(int, int);
+
     void movePiece(int, int, int, int);
 
 
