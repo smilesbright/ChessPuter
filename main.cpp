@@ -15,7 +15,7 @@
 // to their respective Computer class functions.
 // -----------------------------------------------------------------------------
 int main() {
-
+std::cout << sizeof(Position) << "\n";
     Computer puter;
     std::string input;
     bool running = true;

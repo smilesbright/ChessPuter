@@ -28,8 +28,8 @@ void Computer::printBoard() {
         std::cout << "white to move\n";
     if (!board.whiteToMove)
         std::cout << "black to move\n";
-    std::cout << board.enpassantFile << "\n" << board.whiteCanKcastle << 
-    board.whiteCanQcastle << board.blackCanKcastle << board.blackCanQcastle << 
+    std::cout << board.enpassantFile << "\n" << board.whiteKcastlingRights << 
+    board.whiteQcastlingRights << board.blackKcastlingRights << board.blackQcastlingRights << 
     "\n" << numberOfMovesSinceLastCaptureOrPawnMove << ' ' << gameMoveNumber << '\n';
 }
 
@@ -129,16 +129,17 @@ void Computer::startPosition(std::string input) {
 
          {'R','N','B','Q','K','B','N','R'}};// 7
 
+//         0   1   2   3   4   5   6   7
+
     for (int i = 0; i < 8; i++)
         for (int j = 0; j < 8; j++)
             board.pieces[i][j] = startPos[i][j];
     board.enpassantFile = -3;
     board.whiteToMove = true;
-    // board.firstPosition = NULL;
-    board.whiteCanKcastle = true;
-    board.whiteCanQcastle = true;
-    board.blackCanKcastle = true;
-    board.blackCanQcastle = true;
+    board.whiteKcastlingRights = true;
+    board.whiteQcastlingRights = true;
+    board.blackKcastlingRights = true;
+    board.blackQcastlingRights = true;
     numberOfMovesSinceLastCaptureOrPawnMove = 0;
     gameMoveNumber = 1;
 
@@ -156,10 +157,10 @@ void Computer::startPosition(std::string input) {
 // -----------------------------------------------------------------------------
 void Computer::setupFEN(std::string input) {
 
-    board.whiteCanKcastle = false;
-    board.whiteCanQcastle = false;
-    board.blackCanKcastle = false;
-    board.blackCanQcastle = false;
+    board.whiteKcastlingRights = false;
+    board.whiteQcastlingRights = false;
+    board.blackKcastlingRights = false;
+    board.blackQcastlingRights = false;
     board.enpassantFile = -3;
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)
@@ -297,19 +298,19 @@ void Computer::setCastlingRights(std::string input) {
     int fieldCounter = 0;
     for (int i = 0; i < 4; i++) {
         if (input.at(i) == 'K') {
-            board.whiteCanKcastle = true;
+            board.whiteKcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'Q') {
-            board.whiteCanQcastle = true;
+            board.whiteQcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'k') {
-            board.blackCanKcastle = true;
+            board.blackKcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'q') {
-            board.blackCanQcastle = true;
+            board.blackQcastlingRights = true;
             fieldCounter ++;
         }
     }
@@ -396,6 +397,7 @@ void Computer::setMoveNumbers(std::string input) {
     }
     
 }
+
 
 // -- private-------------------------------------------------------------------
 // Computer::playMoves()
@@ -491,9 +493,7 @@ void Computer::goCommand(std::string input) {
     std::vector<int> movesToDelete;
     for (int i = 0; i < board.nextPositions.size(); i++) {
         for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-            //std::cout << board.nextPositions.at(i).nextPositions.at(j).dynamicEvaluation << '\n';
             if (board.whiteToMove && board.nextPositions.at(i).nextPositions.at(j).dynamicEvaluation < -5000) {
-                //std::cout << board.nextPositions.at(i).nextPositions.at(j).dynamicEvaluation << '\n';
                 movesToDelete.push_back(i);
                 break;
             }
@@ -503,9 +503,7 @@ void Computer::goCommand(std::string input) {
             }
         }
     }
-    //std::cout << movesToDelete.size() << '\n';
     for (int a = 0; a < movesToDelete.size(); a++) {
-        board.nextPositions.at(movesToDelete.at(a)).nextPositions.clear();
         board.nextPositions.erase(board.nextPositions.begin() + movesToDelete.at(a));
         for (int b = 0; b < movesToDelete.size(); b++) {
             movesToDelete.at(b) --;
@@ -513,35 +511,23 @@ void Computer::goCommand(std::string input) {
         //std::cout << movesToDelete.at(a) << "\n";
     }
     movesToDelete.clear();
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // Analyze every Position in Depth 2 with a four ply eval for a 6 ply total evaluation
+
+    // Analyze every Position in Depth 2 with a two ply eval for a 4 ply total evaluation
     for (int i = 0; i < board.nextPositions.size(); i++) {
         for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-            board.nextPositions.at(i).nextPositions.at(j).fourPlyEval();//threePlyEval();
+                board.nextPositions.at(i).nextPositions.at(j).twoPlyEval();//threePlyEval();
         }
     }
-
     // Evaluate down to level 0
     for (int i = 0; i < board.nextPositions.size(); i++) {
         board.nextPositions.at(i).dynamicEval();
     }
     board.dynamicEval();
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-/*
-
-*/
-
-
-
-
-
-
 
     //usleep(88888);
     srand(time(NULL));
@@ -564,9 +550,6 @@ void Computer::goCommand(std::string input) {
             }
         }
     }
-
-
-
 
     std::cout << "bestmove " << bestContinuation->lastMove[0] << bestContinuation->lastMove[1] << 
         bestContinuation->lastMove[2] << bestContinuation->lastMove[3] << bestContinuation->promotionPiece << '\n';

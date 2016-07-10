@@ -1,6 +1,5 @@
 # ChessPuter
 # Miles Bright
-# Makefile
 
 CXX = main.cpp
 CXX += Computer.hpp
