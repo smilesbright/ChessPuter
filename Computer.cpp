@@ -10,8 +10,65 @@
 
 
 Computer::Computer() {
-
+    lastSquare[0] = 'x';
+    lastSquare[1] = 'x';
 }
+
+
+void Computer::runReceiveCommands() {
+
+    std::string input;
+    bool running = true;
+    while (running) {
+        std::cin.clear();
+        std::getline(std::cin, input);
+        // Clear extraneous whitespace in command string
+        while (input.at(0) == ' ')
+            input = input.substr(1, input.length() - 1);
+        for (int i = 0; i < input.length(); i++) {
+            if (input.at(i) == ' ' && input.at(i - 1) == ' ') {
+                input.erase(input.begin() + i);
+                i--;
+            }
+        }
+        // Put extra space at the end of the string for substr() and at()
+        input = input + "                       ";
+        if (input.substr(0, 3) == "uci" && input.find("newgame") == -1) {
+            std::cout << "id name ChessPuter\nid author Miles Bright\n";
+            // list changeable options here
+            std::cout << "uciok\n";
+        }
+        if (input.substr(0, 7) == "isready") {
+            std::cout << "readyok\n";
+        }
+        if (input.substr(0, 10) == "ucinewgame") {
+            ucinewgameCommand();
+        }
+        // position [fen <fenstring>|startpos] moves <moves>
+        if (input.substr(0, 8) == "position") {
+            positionCommand(input.substr(9, input.length() - 9));
+        }
+        if (input.substr(0, 2) == "go") {
+            goCommand(input.substr(3, input.length() - 3));
+            // send back bestmove <move> with puter
+        }
+        if (input.substr(0, 4) == "stop") {
+            // need threads for this
+            // must send some bestmove
+            //std::cout << "0000\n";
+        }
+        if (input.substr(0, 5) == "print") {
+            printBoard();
+        }
+        if (input.substr(0, 10) == "legalmoves") {
+            printLegalMoves();
+        }
+        if (input.substr(0, 4) == "quit") {
+            running = false;
+        }
+    }
+}
+
 
 
 void Computer::printBoard() {
@@ -19,52 +76,53 @@ void Computer::printBoard() {
     std::cout << "\n";
     for (int i = 0; i < 8; i ++) {
         for (int j = 0; j < 8; j++) {
-            std::cout << board.pieces[i][j] << ' ';
+            std::cout << pieces[i][j] << ' ';
         }
         std::cout << "\n";
     }
     std::cout << "\n";
-    if (board.whiteToMove)
+    if (whiteToMove)
         std::cout << "white to move\n";
-    if (!board.whiteToMove)
+    if (!whiteToMove)
         std::cout << "black to move\n";
-    std::cout << board.enpassantFile << "\n" << board.whiteKcastlingRights << 
-    board.whiteQcastlingRights << board.blackKcastlingRights << board.blackQcastlingRights << 
+    std::cout << enpassantFile << "\n" << whiteKcastlingRights <<
+    whiteQcastlingRights << blackKcastlingRights << blackQcastlingRights <<
     "\n" << numberOfMovesSinceLastCaptureOrPawnMove << ' ' << gameMoveNumber << '\n';
 }
 
 
+
 void Computer::printLegalMoves() {
 
-    board.findLegalMoves();
-    for (int i = 0; i < board.nextPositions.size(); i++) {
+    findLegalMoves();
+    for (int i = 0; i < nextPositions.size(); i++) {
         for (int j = 0; j < 4; j++) {
-            std::cout << board.nextPositions.at(i).lastMove[j];
+            std::cout << nextPositions.at(i).lastMove[j];
         }
-        std::cout << board.nextPositions.at(i).promotionPiece << '\n';
+        std::cout << nextPositions.at(i).promotionPiece << '\n';
     }
-    std::cout << board.dynamicEvaluation << "\n";
+    std::cout << dynamicEvaluation << "\n";
 }
 
 
 
 void Computer::ucinewgameCommand() {
 
-    board.nextPositions.clear();
+    nextPositions.clear();
+    moveList.clear();
+    repeats.clear();
 }
 
 
 
-// -- public--------------------------------------------------------------------
 // Computer::positionCommand()
 // input: text after "position "
-// -----------------------------------------------------------------------------
 void Computer::positionCommand(std::string input) {
-    
+
     // "position startpos moves e2e4 d7d5 e4d5 d8d5 b1c3                         "
     //           ^                                  ^
     // Compare input position string against last position command
-    /*if (board.nextPositions.size() > 0) {
+    /*if (nextPositions.size() > 0) {
         for (int i = 0; i < positionString.size(); i++) {
             if (input.at(i) != positionString.at(i)) {
                 updateComputerBoard(input.substr(i, input.length() - i));
@@ -72,7 +130,7 @@ void Computer::positionCommand(std::string input) {
         }
         if (input == "startpos                       ")
             positionString = "startpos moves                       ";
-        else 
+        else
             positionString = input;
     }
     else {*/
@@ -89,26 +147,23 @@ void Computer::positionCommand(std::string input) {
 
 void Computer::updateComputerBoard(std::string move) {
 
-    /*for (int i = 0; i < board.nextPositions.size(); i++) {
-        for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-            if (move.at(0) == board.nextPositions.at(i).nextPositions.at(j).lastMove[0]
-             && move.at(1) == board.nextPositions.at(i).nextPositions.at(j).lastMove[1]
-             && move.at(2) == board.nextPositions.at(i).nextPositions.at(j).lastMove[2]
-             && move.at(3) == board.nextPositions.at(i).nextPositions.at(j).lastMove[3]) {
-                board = board.nextPositions.at(i).nextPositions.at(j);
+    /*for (int i = 0; i < nextPositions.size(); i++) {
+        for (int j = 0; j < nextPositions.at(i).nextPositions.size(); j++) {
+            if (move.at(0) == nextPositions.at(i).nextPositions.at(j).lastMove[0]
+             && move.at(1) == nextPositions.at(i).nextPositions.at(j).lastMove[1]
+             && move.at(2) == nextPositions.at(i).nextPositions.at(j).lastMove[2]
+             && move.at(3) == nextPositions.at(i).nextPositions.at(j).lastMove[3]) {
+                board = nextPositions.at(i).nextPositions.at(j);
                 break;
             }
         }
     }
-    board.nextPositions.clear();    // handle better later
+    nextPositions.clear();    // handle better later
 */
 }
 
 
-// -- private-------------------------------------------------------------------
-// 
-//
-// -----------------------------------------------------------------------------
+
 void Computer::startPosition(std::string input) {
 
     char startPos[8][8] =
@@ -133,13 +188,13 @@ void Computer::startPosition(std::string input) {
 
     for (int i = 0; i < 8; i++)
         for (int j = 0; j < 8; j++)
-            board.pieces[i][j] = startPos[i][j];
-    board.enpassantFile = -3;
-    board.whiteToMove = true;
-    board.whiteKcastlingRights = true;
-    board.whiteQcastlingRights = true;
-    board.blackKcastlingRights = true;
-    board.blackQcastlingRights = true;
+            pieces[i][j] = startPos[i][j];
+    enpassantFile = -3;
+    whiteToMove = true;
+    whiteKcastlingRights = true;
+    whiteQcastlingRights = true;
+    blackKcastlingRights = true;
+    blackQcastlingRights = true;
     numberOfMovesSinceLastCaptureOrPawnMove = 0;
     gameMoveNumber = 1;
 
@@ -150,21 +205,19 @@ void Computer::startPosition(std::string input) {
 }
 
 
-// -- private-------------------------------------------------------------------
-// Computer::setupFEN()
-//
+
 // ex: rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1
-// -----------------------------------------------------------------------------
+//
 void Computer::setupFEN(std::string input) {
 
-    board.whiteKcastlingRights = false;
-    board.whiteQcastlingRights = false;
-    board.blackKcastlingRights = false;
-    board.blackQcastlingRights = false;
-    board.enpassantFile = -3;
+    whiteKcastlingRights = false;
+    whiteQcastlingRights = false;
+    blackKcastlingRights = false;
+    blackQcastlingRights = false;
+    enpassantFile = -3;
     for (int y = 0; y < 8; y++)
         for (int x = 0; x < 8; x++)
-            board.pieces[y][x] = '.';
+            pieces[y][x] = '.';
     char character;
     int y = 0;
     int x = 0;
@@ -172,12 +225,12 @@ void Computer::setupFEN(std::string input) {
     for (fenSpan = 0; fenSpan < 64; fenSpan++) {
         character = input.at(fenSpan);
         if (character == 'p') {
-            board.pieces[y][x] = 'p';
+            pieces[y][x] = 'p';
             x ++;
             continue;
         }
         if (character == 'P') {
-            board.pieces[y][x] = 'P';
+            pieces[y][x] = 'P';
             x ++;
             continue;
         }
@@ -219,98 +272,94 @@ void Computer::setupFEN(std::string input) {
             continue;
         }
         if (character == 'r') {
-            board.pieces[y][x] = 'r';
+            pieces[y][x] = 'r';
             x ++;
             continue;
         }
         if (character == 'n') {
-            board.pieces[y][x] = 'n';
+            pieces[y][x] = 'n';
             x ++;
             continue;
         }
         if (character == 'b') {
-            board.pieces[y][x] = 'b';
+            pieces[y][x] = 'b';
             x ++;
             continue;
         }
         if (character == 'q') {
-            board.pieces[y][x] = 'q';
+            pieces[y][x] = 'q';
             x ++;
             continue;
         }
         if (character == 'k') {
-            board.pieces[y][x] = 'k';
+            pieces[y][x] = 'k';
             x ++;
             continue;
         }
         if (character == 'R') {
-            board.pieces[y][x] = 'R';
+            pieces[y][x] = 'R';
             x ++;
             continue;
         }
         if (character == 'N') {
-            board.pieces[y][x] = 'N';
+            pieces[y][x] = 'N';
             x ++;
             continue;
         }
         if (character == 'B') {
-            board.pieces[y][x] = 'B';
+            pieces[y][x] = 'B';
             x ++;
             continue;
         }
         if (character == 'Q') {
-            board.pieces[y][x] = 'Q';
+            pieces[y][x] = 'Q';
             x ++;
             continue;
         }
         if (character == 'K') {
-            board.pieces[y][x] = 'K';
+            pieces[y][x] = 'K';
             x ++;
             continue;
         }
-        if (character == ' ') {                                                                  
+        if (character == ' ') {
             break;
         }
-        
+
     }
     setSideToMove(input.substr(fenSpan + 1, input.length() - fenSpan - 1));
 }
 
 
-// -- private-------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
+
 void Computer::setSideToMove(std::string input) {
 
     if (input.at(0) == 'w')
-        board.whiteToMove = true;
+        whiteToMove = true;
     if (input.at(0) == 'b')
-        board.whiteToMove = false;
+        whiteToMove = false;
     setCastlingRights(input.substr(2, input.length() - 2));
 }
 
 
-// -- private-------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
+
 void Computer::setCastlingRights(std::string input) {
 
     int fieldCounter = 0;
     for (int i = 0; i < 4; i++) {
         if (input.at(i) == 'K') {
-            board.whiteKcastlingRights = true;
+            whiteKcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'Q') {
-            board.whiteQcastlingRights = true;
+            whiteQcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'k') {
-            board.blackKcastlingRights = true;
+            blackKcastlingRights = true;
             fieldCounter ++;
         }
         if (input.at(i) == 'q') {
-            board.blackQcastlingRights = true;
+            blackQcastlingRights = true;
             fieldCounter ++;
         }
     }
@@ -318,43 +367,41 @@ void Computer::setCastlingRights(std::string input) {
 }
 
 
-// -- private-------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
+
 void Computer::setEnpassantSquares(std::string input) {
 
     char character = input.at(0);
     bool squareExists = false;
     if (character == 'a') {
-        board.enpassantFile = 0;
+        enpassantFile = 0;
         squareExists = true;
     }
     if (character == 'b') {
-        board.enpassantFile = 1;
+        enpassantFile = 1;
         squareExists = true;
     }
     if (character == 'c') {
-        board.enpassantFile = 2;
+        enpassantFile = 2;
         squareExists = true;
     }
     if (character == 'd') {
-        board.enpassantFile = 3;
+        enpassantFile = 3;
         squareExists = true;
     }
     if (character == 'e') {
-        board.enpassantFile = 4;
+        enpassantFile = 4;
         squareExists = true;
     }
     if (character == 'f') {
-        board.enpassantFile = 5;
+        enpassantFile = 5;
         squareExists = true;
     }
     if (character == 'g') {
-        board.enpassantFile = 6;
+        enpassantFile = 6;
         squareExists = true;
     }
     if (character == 'h') {
-        board.enpassantFile = 7;
+        enpassantFile = 7;
         squareExists = true;
     }
     if (squareExists) {
@@ -365,9 +412,7 @@ void Computer::setEnpassantSquares(std::string input) {
 }
 
 
-// -- private-------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
+
 void Computer::setMoveNumbers(std::string input) {
 
     char num = input.at(0);
@@ -395,14 +440,11 @@ void Computer::setMoveNumbers(std::string input) {
     if (mLoc != -1) {
         playMoves(input.substr(mLoc + 6, input.length() - mLoc - 6));
     }
-    
+
 }
 
 
-// -- private-------------------------------------------------------------------
-// Computer::playMoves()
-// Plays moves on the computer's internal chess board given in position command
-// -----------------------------------------------------------------------------
+
 void Computer::playMoves(std::string input) {
 
     if (input.at(0) == ' ')
@@ -422,149 +464,122 @@ void Computer::playMoves(std::string input) {
             x2 = i;
         comparator ++;
     }
-    board.enpassantFile = -3;
+    enpassantFile = -3;
     if (input.at(4) != ' ') {
-        if (board.whiteToMove) {
+        if (whiteToMove) {
             if (input.at(4) == 'q' || input.at(4) == 'Q')
-                board.makeMove(y1, x1, y2, x2, 'Q');
+                makeMove(y1, x1, y2, x2, 'Q');
             if (input.at(4) == 'r' || input.at(4) == 'R')
-                board.makeMove(y1, x1, y2, x2, 'R');
+                makeMove(y1, x1, y2, x2, 'R');
             if (input.at(4) == 'n' || input.at(4) == 'N')
-                board.makeMove(y1, x1, y2, x2, 'N');
+                makeMove(y1, x1, y2, x2, 'N');
             if (input.at(4) == 'b' || input.at(4) == 'B')
-                board.makeMove(y1, x1, y2, x2, 'B');
-            board.whiteToMove = false;
+                makeMove(y1, x1, y2, x2, 'B');
+            whiteToMove = false;
         }
         else {
             if (input.at(4) == 'q' || input.at(4) == 'Q')
-                board.makeMove(y1, x1, y2, x2, 'q');
+                makeMove(y1, x1, y2, x2, 'q');
             if (input.at(4) == 'r' || input.at(4) == 'R')
-                board.makeMove(y1, x1, y2, x2, 'r');
+                makeMove(y1, x1, y2, x2, 'r');
             if (input.at(4) == 'n' || input.at(4) == 'N')
-                board.makeMove(y1, x1, y2, x2, 'n');
+                makeMove(y1, x1, y2, x2, 'n');
             if (input.at(4) == 'b' || input.at(4) == 'B')
-                board.makeMove(y1, x1, y2, x2, 'b');
-            board.whiteToMove = true;
+                makeMove(y1, x1, y2, x2, 'b');
+            whiteToMove = true;
         }
-        
+
         playMoves(input.substr(6, input.length() - 6));
     }
     else {
-        board.makeMove(y1, x1, y2, x2, ' ');
-        if (board.whiteToMove)
-            board.whiteToMove = false;
+        makeMove(y1, x1, y2, x2, ' ');
+        if (whiteToMove)
+            whiteToMove = false;
         else
-            board.whiteToMove = true;
+            whiteToMove = true;
         playMoves(input.substr(5, input.length() - 5));
     }
 }
 
 
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-//////////////////////////      GO FUNCTIONS      //////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-// -- public--------------------------------------------------------------------
-// Computer::goCommand()
-// Incremental Development
-// -----------------------------------------------------------------------------
 void Computer::goCommand(std::string input) {
 
     // build tree to two depths
-    board.findLegalMoves();
-    for (int i = 0; i < board.nextPositions.size(); i++) {
-        board.nextPositions.at(i).findLegalMoves();         // benchmark this vs findAllMoves
+    findLegalMoves();
+    for (int i = 0; i < nextPositions.size(); i++) {
+        nextPositions.at(i).findLegalMoves();         // benchmark this vs findAllMoves
     }
-    // get rid of illegal in-check moves, and possibly other garbage moves later on
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    for (int i = 0; i < board.nextPositions.size(); i++) {
-        for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-            board.nextPositions.at(i).nextPositions.at(j).staticEval(); // write completely different, shorter, faster function for this purpose
-            // prune out garbage moves along with king moves - which are possible with just 2 plies obvs.
+    // get rid of illegal in-check moves from the list of candidates
+    for (int i = 0; i < nextPositions.size(); i++) {
+        for (int j = 0; j < nextPositions.at(i).nextPositions.size(); j++) {
+            nextPositions.at(i).nextPositions.at(j).kingOnBoard(whiteToMove, &nextPositions.at(i));
         }
     }
     std::vector<int> movesToDelete;
-    for (int i = 0; i < board.nextPositions.size(); i++) {
-        for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-            if (board.whiteToMove && board.nextPositions.at(i).nextPositions.at(j).dynamicEvaluation < -5000) {
-                movesToDelete.push_back(i);
-                break;
-            }
-            else if (!board.whiteToMove && board.nextPositions.at(i).nextPositions.at(j).dynamicEvaluation > 5000) {
-                movesToDelete.push_back(i);
-                break;
-            }
+    for (int i = 0; i < nextPositions.size(); i++) {
+        if (whiteToMove && nextPositions.at(i).dynamicEvaluation < -9000) {
+            movesToDelete.push_back(i);
+            continue;
+        }
+        else if (!whiteToMove && nextPositions.at(i).dynamicEvaluation > 9000) {
+            movesToDelete.push_back(i);
+            continue;
         }
     }
     for (int a = 0; a < movesToDelete.size(); a++) {
-        board.nextPositions.erase(board.nextPositions.begin() + movesToDelete.at(a));
+        nextPositions.erase(nextPositions.begin() + movesToDelete.at(a));
         for (int b = 0; b < movesToDelete.size(); b++) {
             movesToDelete.at(b) --;
         }
-        //std::cout << movesToDelete.at(a) << "\n";
     }
     movesToDelete.clear();
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
     // Analyze every Position in Depth 2 with a two ply eval for a 4 ply total evaluation
-    for (int i = 0; i < board.nextPositions.size(); i++) {
-        for (int j = 0; j < board.nextPositions.at(i).nextPositions.size(); j++) {
-                board.nextPositions.at(i).nextPositions.at(j).twoPlyEval();//threePlyEval();
+    for (int i = 0; i < nextPositions.size(); i++) {
+        for (int j = 0; j < nextPositions.at(i).nextPositions.size(); j++) {
+                nextPositions.at(i).nextPositions.at(j).twoPlyEval();//threePlyEval();
         }
     }
-    // Evaluate down to level 0
-    for (int i = 0; i < board.nextPositions.size(); i++) {
-        board.nextPositions.at(i).dynamicEval();
+    // Evaluate down to level 1
+    for (int i = 0; i < nextPositions.size(); i++) {
+        nextPositions.at(i).dynamicEval();
     }
-    board.dynamicEval();
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    //usleep(88888);
-    srand(time(NULL));
-    int index = rand() % (board.nextPositions.size());
-    Position *bestContinuation = &board.nextPositions.at(index);
-    int bestEval = board.nextPositions.at(index).dynamicEvaluation;
-    if (board.whiteToMove) {
-        for (int i = 0; i < board.nextPositions.size(); i++) {
-            if (board.nextPositions.at(i).dynamicEvaluation > bestEval) {
-                bestEval = board.nextPositions.at(i).dynamicEvaluation;
-                bestContinuation = &board.nextPositions.at(i);
-            }
+    // penalty for moves leaving the same square as the last destination square
+    for (int i = 0; i < nextPositions.size(); i++) {
+        if (nextPositions.at(i).lastMove[0] == lastSquare[0] && nextPositions.at(i).lastMove[1] == lastSquare[1]) {
+            if (whiteToMove)
+                nextPositions.at(i).dynamicEvaluation -= 48;
+            else
+                nextPositions.at(i).dynamicEvaluation += 48;
         }
     }
-    else {
-        for (int i = 0; i < board.nextPositions.size(); i++) {
-            if (board.nextPositions.at(i).dynamicEvaluation < bestEval) {
-                bestEval = board.nextPositions.at(i).dynamicEvaluation;
-                bestContinuation = &board.nextPositions.at(i);
-            }
-        }
-    }
-
-    std::cout << "bestmove " << bestContinuation->lastMove[0] << bestContinuation->lastMove[1] << 
-        bestContinuation->lastMove[2] << bestContinuation->lastMove[3] << bestContinuation->promotionPiece << '\n';
-    board.nextPositions.clear();
-    
+    sendBestMove();
 }
 
 
 
+void Computer::sendBestMove() {
 
-
-
-
-
-
-
-
-
+    srand(time(NULL));
+    int index = rand() % (nextPositions.size());
+    Position *bestContinuation = &nextPositions.at(index);
+    if (whiteToMove) {
+        for (int i = 0; i < nextPositions.size(); i++) {
+            if (nextPositions.at(i).dynamicEvaluation > bestContinuation->dynamicEvaluation)
+                bestContinuation = &nextPositions.at(i);
+        }
+    }
+    else {
+        for (int i = 0; i < nextPositions.size(); i++) {
+            if (nextPositions.at(i).dynamicEvaluation < bestContinuation->dynamicEvaluation)
+                bestContinuation = &nextPositions.at(i);
+        }
+    }
+    std::cout << "bestmove " << bestContinuation->lastMove[0] << bestContinuation->lastMove[1] <<
+        bestContinuation->lastMove[2] << bestContinuation->lastMove[3] << bestContinuation->promotionPiece << '\n';
+    lastSquare[0] = bestContinuation->lastMove[2];
+    lastSquare[1] = bestContinuation->lastMove[3];
+    nextPositions.clear();
+}

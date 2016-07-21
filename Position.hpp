@@ -13,21 +13,20 @@
 class Position {
 
 
-public:
+protected:    // accessible by Computer class
 
-    char pieces[8][8];
-    char lastMove[4];
-    char promotionPiece;
+    char pieces[8][8];      // use bitboards?
     bool whiteToMove;
     bool whiteQcastlingRights, whiteKcastlingRights;
     bool blackQcastlingRights, blackKcastlingRights;
-    // int whiteBishops, blackBishops, whitePieces, blackPieces;
-    //char positionState;   // possibly use a separate class
+    short enpassantFile;
 
-    short enpassantFile;      // use one char instead of a short?
-    int dynamicEvaluation;    // prefer functions to stored variables?
-    std::vector<Position> nextPositions;
+public:
 
+    char lastMove[4];
+    char promotionPiece;
+    double dynamicEvaluation;    // prefer functions to stored variables?
+    std::vector<Position> nextPositions;    // use a lighter container?
 
 public:
 
@@ -39,11 +38,12 @@ public:
     // char* bestmove();
     void staticEval();
     void dynamicEval();
-    void sortNextPositions(); 
+    void sortNextPositions();
     void twoPlyEval();
     void threePlyEval();
     void fourPlyEval();
     void positionEval();
+    void kingOnBoard(bool, Position*);
 
 
 private: // move making functions

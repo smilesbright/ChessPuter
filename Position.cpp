@@ -17,8 +17,8 @@ Position::Position() {
 }
 
 
-Position::Position(char oldPieces[8][8], short y1, short x1, short y2, short x2, char promoPiece,
-        bool wTm, bool WKC, bool WQC, bool BKC, bool BQC) {
+Position::Position(char oldPieces[8][8], short y1, short x1, short y2, short x2,
+    char promoPiece, bool wTm, bool WKC, bool WQC, bool BKC, bool BQC) {
 
     promotionPiece = promoPiece;
     enpassantFile = -3;
@@ -74,7 +74,7 @@ char Position::integerToChar(short number) {
 
 // Guaranteed legal moves
 void Position::makeMove(int y1, int x1, int y2, int x2, char promoPiece) {
-    
+
     if (promoPiece != ' ') {
         pieces[y2][x2] = promoPiece;
         pieces[y1][x1] = '.';
@@ -170,10 +170,10 @@ void Position::makeMove(int y1, int x1, int y2, int x2, char promoPiece) {
 
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::findLegalMoves() {
-    
+
     if (whiteToMove) {
         for (int y = 0; y < 8; y++) {       // loop through piece * list instead?
             for (int x = 0; x < 8; x++) {
@@ -243,7 +243,7 @@ void Position::findLegalMoves() {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::pawnMoves(int y, int x) {
 
@@ -285,7 +285,7 @@ void Position::pawnMoves(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::rookMoves(int y, int x) {
 
@@ -345,7 +345,7 @@ void Position::rookMoves(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::knightMoves(int y, int x) {
 
@@ -369,7 +369,7 @@ void Position::knightMoves(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::bishopMoves(int y, int x) {
 
@@ -429,7 +429,7 @@ void Position::bishopMoves(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::queenMoves(int y, int x) {
 
@@ -439,7 +439,7 @@ void Position::queenMoves(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::kingMoves(int y, int x) {
 
@@ -459,19 +459,19 @@ void Position::kingMoves(int y, int x) {
         movePiece(y, x, y - 1, x + 1);
     if (emptySquare(y - 1, x - 1) || enemyPiece(y - 1, x - 1))
         movePiece(y, x, y - 1, x - 1);
-    if (whiteToMove && whiteKcastlingRights && whiteLegalToKcastle())
+    if (whiteToMove && whiteKcastlingRights && whiteLegalToKcastle() && pieces[7][7] == 'R')
         movePiece(7, 4, 7, 6);
-    if (whiteToMove && whiteQcastlingRights && whiteLegalToQcastle())
+    if (whiteToMove && whiteQcastlingRights && whiteLegalToQcastle() && pieces[7][0] == 'R')
         movePiece(7, 4, 7, 2);
-    if (!whiteToMove && blackKcastlingRights && blackLegalToKcastle())
+    if (!whiteToMove && blackKcastlingRights && blackLegalToKcastle() && pieces[0][7] == 'r')
         movePiece(0, 4, 0, 6);
-    if (!whiteToMove && blackQcastlingRights && blackLegalToQcastle())
+    if (!whiteToMove && blackQcastlingRights && blackLegalToQcastle() && pieces[0][0] == 'r')
         movePiece(0, 4, 0, 2);
 }
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::whiteLegalToKcastle() {
 
@@ -508,7 +508,7 @@ bool Position::whiteLegalToKcastle() {
             return false;
     }
     int x;  // spans board left and right
-    for (x = 3; x != 0; x--) {      // search home rank for rooks or queens to left of king 
+    for (x = 3; x != 0; x--) {      // search home rank for rooks or queens to left of king
         if (pieces[7][x] != '.')
             break;
         else if (pieces[7][x - 1] == 'r' || pieces[7][x - 1] == 'q')
@@ -555,7 +555,7 @@ bool Position::whiteLegalToKcastle() {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::whiteLegalToQcastle() {
 
@@ -592,7 +592,7 @@ bool Position::whiteLegalToQcastle() {
             return false;
     }
     int x;  // spans board left and right
-    for (x = 5; x != 7; x++) {      // search home rank for rooks or queens to right of king 
+    for (x = 5; x != 7; x++) {      // search home rank for rooks or queens to right of king
         if (pieces[7][x] != '.')
             break;
         else if (pieces[7][x + 1] == 'r' || pieces[7][x + 1] == 'q')
@@ -648,7 +648,7 @@ bool Position::whiteLegalToQcastle() {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::blackLegalToKcastle() {
 
@@ -685,7 +685,7 @@ bool Position::blackLegalToKcastle() {
             return false;
     }
     int x;  // spans board left and right
-    for (x = 3; x != 0; x--) {      // search home rank for rooks or queens to left of king 
+    for (x = 3; x != 0; x--) {      // search home rank for rooks or queens to left of king
         if (pieces[0][x] != '.')
             break;
         else if (pieces[0][x - 1] == 'R' || pieces[0][x - 1] == 'Q')
@@ -733,7 +733,7 @@ bool Position::blackLegalToKcastle() {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::blackLegalToQcastle() {
 
@@ -770,7 +770,7 @@ bool Position::blackLegalToQcastle() {
             return false;
     }
     int x;  // spans board left and right
-    for (x = 5; x != 7; x++) {      // search home rank for rooks or queens to right of king 
+    for (x = 5; x != 7; x++) {      // search home rank for rooks or queens to right of king
         if (pieces[0][x] != '.')
             break;
         else if (pieces[0][x + 1] == 'R' || pieces[0][x + 1] == 'Q')
@@ -827,10 +827,10 @@ bool Position::blackLegalToQcastle() {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::squareInBounds(int y, int x) {
-    
+
     if (y > -1 && y < 8 && x > -1 && x < 8)
         return true;
     else
@@ -841,10 +841,10 @@ bool Position::squareInBounds(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::emptySquare(int y, int x) {
-    
+
     if (y < 0 || y > 7 || x < 0 || x > 7)
         return false;
     if (pieces[y][x] == '.')
@@ -855,10 +855,10 @@ bool Position::emptySquare(int y, int x) {
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 bool Position::enemyPiece(int y, int x) {
-    
+
     if (y < 0 || y > 7 || x < 0 || x > 7)
         return false;
     char target = pieces[y][x];
@@ -876,13 +876,13 @@ bool Position::enemyPiece(int y, int x) {
         else
             return false;
     }
-    
+
 }
 
 
 
 // -- private-------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::movePiece(int y1, int x1, int y2, int x2) {
 
@@ -890,32 +890,32 @@ void Position::movePiece(int y1, int x1, int y2, int x2) {
         Position queenPro(pieces,y1, x1, y2, x2, 'q', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(queenPro);
-        Position rookPro(pieces, y1, x1, y2, x2, 'r', whiteToMove, 
+        Position rookPro(pieces, y1, x1, y2, x2, 'r', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(rookPro);
-        Position bishopPro(pieces, y1, x1, y2, x2, 'b', whiteToMove, 
+        Position bishopPro(pieces, y1, x1, y2, x2, 'b', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(bishopPro);
-        Position knightPro(pieces, y1, x1, y2, x2, 'n', whiteToMove, 
+        Position knightPro(pieces, y1, x1, y2, x2, 'n', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(knightPro);
     }
     else if (pieces[y1][x1] == 'P' && y2 == 0) {
-        Position queenPro(pieces, y1, x1, y2, x2, 'Q', whiteToMove, 
+        Position queenPro(pieces, y1, x1, y2, x2, 'Q', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(queenPro);
-        Position rookPro(pieces, y1, x1, y2, x2, 'R', whiteToMove, 
+        Position rookPro(pieces, y1, x1, y2, x2, 'R', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(rookPro);
-        Position bishopPro(pieces, y1, x1, y2, x2, 'B', whiteToMove, 
+        Position bishopPro(pieces, y1, x1, y2, x2, 'B', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(bishopPro);
-        Position knightPro(pieces, y1, x1, y2, x2, 'N', whiteToMove, 
+        Position knightPro(pieces, y1, x1, y2, x2, 'N', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(knightPro);
     }
     else {
-        Position newPos(pieces, y1, x1, y2, x2, ' ', whiteToMove, 
+        Position newPos(pieces, y1, x1, y2, x2, ' ', whiteToMove,
         whiteKcastlingRights, whiteQcastlingRights, blackKcastlingRights, blackQcastlingRights);
         nextPositions.push_back(newPos);
     }
@@ -929,9 +929,40 @@ void Position::movePiece(int y1, int x1, int y2, int x2) {
 
 
 
+// -- private-------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void Position::kingOnBoard(bool wTm, Position *home) {
+
+    if (wTm) {
+        for (int i = 7; i > -1; i--) {
+            for (int j = 7; j > -1; j--) {
+                if (pieces[i][j] == 'K') {
+                    return;
+                }
+            }
+        }
+        home->dynamicEvaluation = -20000;
+        return;
+    }
+    else {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (pieces[i][j] == 'k') {
+                    return;
+                }
+            }
+        }
+        home->dynamicEvaluation = 20000;
+        return;
+    }
+}
+
+
+
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::dynamicEval() {
 
@@ -956,7 +987,7 @@ void Position::dynamicEval() {
 
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::sortNextPositions() {
 
@@ -987,7 +1018,7 @@ void Position::sortNextPositions() {
 
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::twoPlyEval() {
 
@@ -1000,39 +1031,55 @@ void Position::twoPlyEval() {
     }
     for (int i = 0; i < nextPositions.size(); i++) {
         nextPositions.at(i).dynamicEval();
-        if (whiteToMove) {
+        /*if (whiteToMove) {
             nextPositions.at(i).dynamicEvaluation -= nextPositions.at(i).nextPositions.size();
         }
         else {
-            nextPositions.at(i).dynamicEvaluation -= nextPositions.at(i).nextPositions.size();
-        }
+            nextPositions.at(i).dynamicEvaluation += nextPositions.at(i).nextPositions.size();
+        }*/
     }
     dynamicEval();
+    if (whiteToMove) {
+        dynamicEvaluation += nextPositions.size();
+    }
+    else {
+        dynamicEvaluation -= nextPositions.size();
+    }
     nextPositions.clear();
 }
 
 
 
-// -- public--------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
+//
+//
+//
 void Position::threePlyEval() {
-
     findLegalMoves();
     for (int i = 0; i < nextPositions.size(); i++) {
         nextPositions.at(i).findLegalMoves();
         for (int j = 0; j < nextPositions.at(i).nextPositions.size(); j++) {
             nextPositions.at(i).nextPositions.at(j).findLegalMoves();     // depth 3
-            for (int k = 0; k < nextPositions.at(i).nextPositions.at(j).nextPositions.size(); k++) {
+            for (int k = 0; k < nextPositions.at(i).nextPositions.at(j).nextPositions.size(); k++)
                 nextPositions.at(i).nextPositions.at(j).nextPositions.at(k).staticEval();
-            }
         }
     }
     for (int i = 0; i < nextPositions.size(); i++) {
         for (int j = 0; j < nextPositions.at(i).nextPositions.size(); j++) {
             nextPositions.at(i).nextPositions.at(j).dynamicEval();        // depth 2
+            if (whiteToMove) {
+                dynamicEvaluation += nextPositions.at(i).nextPositions.at(j).nextPositions.size();
+            }
+            else {
+                dynamicEvaluation -= nextPositions.at(i).nextPositions.at(j).nextPositions.size();
+            }
         }
         nextPositions.at(i).dynamicEval();        // depth 1
+        /*if (whiteToMove) {
+            dynamicEvaluation += nextPositions.at(i).nextPositions.size();
+        }
+        else {
+            dynamicEvaluation -= nextPositions.at(i).nextPositions.size();
+        }*/
     }
     dynamicEval();
     nextPositions.clear();
@@ -1042,7 +1089,7 @@ void Position::threePlyEval() {
 
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
 void Position::fourPlyEval() {
 
@@ -1075,147 +1122,109 @@ void Position::fourPlyEval() {
 
 
 // -- public--------------------------------------------------------------------
-// 
+//
 // -----------------------------------------------------------------------------
-void Position::staticEval() { // (Position* nextPosition)
+void Position::staticEval() {
 
+    double whiteMaterial = 0;
+    double blackMaterial = 0;
+    int whiteBishops = 0;
+    int blackBishops = 0;
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
-            if (pieces[i][j] == '.') {      // piece lists or piece counts would speed this up 
+            if (pieces[i][j] == '.')
                 continue;
-            }
             if (pieces[i][j] == 'p') {
-                dynamicEvaluation -= 24;// - i;//25, 26, 27
+                blackMaterial += 120 - i;
                 continue;
             }
             if (pieces[i][j] == 'P') {
-                dynamicEvaluation += 24;// - i + 7;
+                whiteMaterial += 120 - i + 7;
                 continue;
             }
             if (pieces[i][j] == 'r') {
-                dynamicEvaluation -= 128;
+                blackMaterial += 640;
                 continue;
             }
             if (pieces[i][j] == 'n') {
-                dynamicEvaluation -= 78;
+                blackMaterial += 390;
+                if (i == 0 || j == 0 || j == 7)
+                    blackMaterial -= 18;
                 continue;
             }
             if (pieces[i][j] == 'b') {
-                dynamicEvaluation -= 78;
+                blackMaterial += 390;
+                if (i == 0)
+                    blackMaterial -= 10;
+                blackBishops ++;
                 continue;
             }
             if (pieces[i][j] == 'q') {
-                dynamicEvaluation -= 236;
+                blackMaterial += 1180;
                 continue;
             }
             if (pieces[i][j] == 'k') {
-                dynamicEvaluation -= 8000;
+                blackMaterial += 12000;
+                if (i == 0 && j == 6)// && pieces[0][5] == 'r')
+                    blackMaterial += 80;
+                else if (i == 0 && j == 2)
+                    blackMaterial += 80;
                 continue;
             }
             if (pieces[i][j] == 'R') {
-                dynamicEvaluation += 128;
+                whiteMaterial += 640;
                 continue;
             }
             if (pieces[i][j] == 'N') {
-                dynamicEvaluation += 78;
+                whiteMaterial += 390;
+                if (i == 7 || j == 0 || j == 7)
+                    whiteMaterial -= 18;
                 continue;
             }
             if (pieces[i][j] == 'B') {
-                dynamicEvaluation += 78;
+                whiteMaterial += 390;
+                if (i == 0)
+                    whiteMaterial -= 10;
+                whiteBishops ++;
                 continue;
             }
             if (pieces[i][j] == 'Q') {
-                dynamicEvaluation += 236;
+                whiteMaterial += 1180;
                 continue;
             }
             if (pieces[i][j] == 'K') {
-                dynamicEvaluation += 8000;
+                whiteMaterial += 12000;
+                if (i == 7 && j == 6)// && pieces[7][5] == 'R')
+                    whiteMaterial += 80;
+                else if (i == 7 && j == 2)
+                    whiteMaterial += 80;
                 continue;
             }
         }
     }
-    positionEval();
+    if (whiteBishops > 1 && blackBishops < 2)
+        whiteMaterial += 60;
+    else if (blackBishops > 1 && whiteBishops < 2)
+        blackMaterial += 60;
+    if (pieces[3][3] == 'p')// || pieces[3][3] == 'n' || pieces[3][3] == 'b')
+        blackMaterial += 12;
+    else if (pieces[3][3] == 'P')// || pieces[3][3] == 'N' || pieces[3][3] == 'B')
+        whiteMaterial += 12;
+    if (pieces[3][4] == 'p')// || pieces[3][4] == 'n' || pieces[3][4] == 'b')
+        blackMaterial += 12;
+    else if (pieces[3][4] == 'P')// || pieces[3][4] == 'N' || pieces[3][4] == 'B')
+        whiteMaterial += 12;
+    if (pieces[4][3] == 'P')// || pieces[4][3] == 'N' || pieces[4][3] == 'B')
+        whiteMaterial += 12;
+    else if (pieces[4][3] == 'p')// || pieces[4][3] == 'n' || pieces[4][3] == 'b')
+        blackMaterial += 12;
+    if (pieces[4][4] == 'P')// || pieces[4][4] == 'N' || pieces[4][4] == 'B')
+        whiteMaterial += 12;
+    else if (pieces[4][4] == 'p')// || pieces[4][4] == 'n' || pieces[4][4] == 'b')
+        blackMaterial += 12;
+    // whiteMaterial = 16980    blackMaterial = 16860
+    // dynamicEvaluation = log(whiteMaterial / blackMaterial) [negative when white less than black] [optionally * 300] = 0.92403436858
+    // whiteMaterial = 12520     blackMaterial = 12400
+    // dynamicEvaluation = greater than previous @ 1.254793114
+    dynamicEvaluation = log(whiteMaterial / blackMaterial) * 30000;
 }
-
-
-
-// -- public--------------------------------------------------------------------
-// 
-// -----------------------------------------------------------------------------
-void Position::positionEval() {
-
-    if (pieces[3][3] == 'p')
-        dynamicEvaluation -= 2;
-    else if (pieces[3][3] == 'P')
-        dynamicEvaluation += 2;
-    if (pieces[3][4] == 'p')
-        dynamicEvaluation -= 2;
-    else if (pieces[3][4] == 'P')
-        dynamicEvaluation += 2;
-    if (pieces[4][3] == 'p')
-        dynamicEvaluation -= 2;
-    else if (pieces[4][3] == 'P')
-        dynamicEvaluation += 2;
-    if (pieces[4][4] == 'p')
-        dynamicEvaluation -= 2;
-    else if (pieces[4][4] == 'P')
-        dynamicEvaluation += 2;
-    if (pieces[7][6] == 'K')
-        dynamicEvaluation += 18;
-    if (pieces[0][6] == 'k')
-        dynamicEvaluation -= 18;
-    if (pieces[7][1] == 'N' || pieces[5][0] == 'N')
-        dynamicEvaluation -= 3;
-    if (pieces[7][6] == 'N' || pieces[5][7] == 'N')
-        dynamicEvaluation -= 3;
-    if (pieces[7][2] == 'B')
-        dynamicEvaluation -= 2;
-    if (pieces[7][5] == 'B')
-        dynamicEvaluation -= 2;
-    if (pieces[0][1] == 'n' || pieces[2][0] == 'n')
-        dynamicEvaluation += 3;
-    if (pieces[0][6] == 'n' || pieces[2][7] == 'n')
-        dynamicEvaluation += 3;
-    if (pieces[0][2] == 'b')
-        dynamicEvaluation += 2;
-    if (pieces[0][5] == 'b')
-        dynamicEvaluation += 2;
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

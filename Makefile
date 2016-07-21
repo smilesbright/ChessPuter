@@ -1,4 +1,5 @@
 # ChessPuter
+# Makefile
 # Miles Bright
 
 CXX = main.cpp
