@@ -3,4 +3,6 @@ ChessPuter (chess pyoo-ter) is a UCI (Universal Chess Interface) compatible** co
 
 ChessPuter can be compiled on Linux with its Makefile. It can be installed and played with best on PyChess (https://github.com/pychess/pychess).
 
-** ChessPuter is not yet fully UCI compatible. To be fully compatible, threads must be implemented to allow for pausing a game while the program is thinking, to allow it to respond to a "isready" command as well as immediately respond to a stop command while thinking.
+** ChessPuter is not yet fully UCI compatible. To be fully compatible, the following changes still need to be made:
+  - Event handling using threads must be implemented to allow the program to immediately respond to commands such as "stop", "isready", and others
+  - The command string process should be made to be case-insensitive
