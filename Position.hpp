@@ -7,15 +7,16 @@
 #define POSITION_HPP
 
 #include <vector>
+#include <string>
 
 
 
 class Position {
 
 
-protected:    // accessible by Computer class
+public:
 
-    char pieces[8][8];      // use bitboards?
+    char pieces[8][8];      // use bitboards?    pointer arithmetic?
     bool whiteToMove;
     bool whiteQcastlingRights, whiteKcastlingRights;
     bool blackQcastlingRights, blackKcastlingRights;
@@ -25,8 +26,11 @@ public:
 
     char lastMove[4];
     char promotionPiece;
-    double dynamicEvaluation;    // prefer functions to stored variables?
-    std::vector<Position> nextPositions;    // use a lighter container?
+    double dynamicEvaluation;
+    std::vector<Position> nextPositions;
+
+    int gameMoveNumber;
+    int numberOfMovesSinceLastCaptureOrPawnMove;
 
 public:
 
@@ -39,11 +43,32 @@ public:
     void staticEval();
     void dynamicEval();
     void sortNextPositions();
+    void onePlyEval();
     void twoPlyEval();
     void threePlyEval();
     void fourPlyEval();
     void positionEval();
     void kingOnBoard(bool, Position*);
+
+    void findBestMove(/* time parameters */);
+
+
+public: // root position setup, FEN string parsing, and commands
+
+    void printBoard();
+    void printLegalMoves();
+    void ucinewgameCommand();
+
+    void startPosition(std::string);
+    void setupFEN(std::string);
+    void setSideToMove(std::string);
+    void setCastlingRights(std::string);
+    void setEnpassantSquares(std::string);
+    void setMoveNumbers(std::string);
+    void playMoves(std::string);
+
+
+
 
 
 private: // move making functions
