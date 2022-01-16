@@ -37,7 +37,7 @@ void Engine::runReceiveCommands() {
         // Put extra space at the end of the string for substr() and at()
         input = input + "                       ";
         if (input.substr(0, 3) == "uci" && input.find("newgame") == -1) {
-            std::cout << "id name ChessPuter\nid author Miles Bright\n";
+            std::cout << "id name ChessPuter r220116\nid author Miles Bright\n";
             // list changeable options here
             std::cout << "uciok\n";
             continue;
