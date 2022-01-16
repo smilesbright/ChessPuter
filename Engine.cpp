@@ -14,7 +14,7 @@ Engine::Engine() {
 
     lastSquare[0] = 'x';
     lastSquare[1] = 'x';
-    firstMove = true;
+    firstMove = false;
 }
 
 
@@ -108,9 +108,15 @@ void Engine::positionCommand(std::string input) {
         // Reset board information for the new position
         //positionString = input;
         if (input.substr(0, 8) == "startpos")
+        {
             rootPosition.startPosition(input.substr(9, input.length() - 9));
+            firstMove = (input.rfind("moves") == std::string::npos);
+        }
         if (input.substr(0, 3) == "fen")
+        {
             rootPosition.setupFEN(input.substr(4, input.length() - 4));
+            firstMove = (input.rfind("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") != std::string::npos) and (input.rfind("moves") == std::string::npos);
+        }
     //}
 }
 
@@ -121,7 +127,6 @@ void Engine::goCommand(std::string input) {
     if (firstMove) {
         if (rootPosition.whiteToMove) {
             std::cout << "bestmove d2d4\n";
-            firstMove = false;
             return;
         }
     }
